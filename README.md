@@ -373,14 +373,3 @@ You're not going to send credit card data over the Docker daemon HTTP port.
 
 But I am no security expert.
 
-## Docker Containers on Remote Hosts and Ansible
-
-When you use the `docker_container` Ansible module to launch a Docker container, you can give the `docker_host:` option:
-
-```
-docker_container:
-  docker_host: "tcp://{{ host }}:{{ port }}"
-  ```
-  
-  The module automatically replaces `tcp` with `https` if the local machine is configured for TLS connection to Docker.
-  
