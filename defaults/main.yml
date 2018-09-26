@@ -7,6 +7,8 @@ server_certificate_path: /etc/docker/ssl
     
 subjectAltName: "IP:127.0.0.1"
 
+docker_port: 2376
+
 # -subj fields
 country: GB
 state_or_province: London
