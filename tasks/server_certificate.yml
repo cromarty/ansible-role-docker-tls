@@ -1,0 +1,61 @@
+---
+
+
+- name: Create server key
+  command: >
+    openssl genrsa -out {{ tmp_path }}/server-key.pem 4096
+
+
+- name: Create server CSR
+  command: >
+    openssl req -subj '/CN=aaf01' -sha256 \
+    -new -key {{ tmp_path }}/server-key.pem \
+    -out {{ tmp_path }}/server.csr
+
+
+- name: Remove extfile
+  file:
+    state: absent
+    path: "{{ tmp_path }}/extfile.cnf" 
+
+- name: Create extfile
+  file:
+    state: touch 
+    path: "{{ tmp_path }}/extfile.cnf"
+
+- name: Add alt name to extfile
+  lineinfile:
+    dest: "{{ tmp_path }}/extfile.cnf"
+    line: "subjectAltName = {{ subjectAltName }}"
+
+- name: Create server certificate
+  command: >
+    openssl x509 -req -days 365 -sha256 -in {{ tmp_path }}/server.csr \
+    -CA {{ tmp_path }}/ca.pem \
+    -CAkey {{ tmp_path }}/ca-key.pem \
+    -CAcreateserial -out {{ tmp_path }}/server-cert.pem \
+    -extfile {{ tmp_path }}/extfile.cnf \
+    -passin pass:{{ privatekey_passphrase }}
+
+
+- name: Check that the server cert path exists
+  file:
+    state: directory
+    path: "{{ server_certificate_path }}"
+
+- name: Copy server certs
+  command: >
+    cp "{{ tmp_path }}/{{ item }}" "{{ server_certificate_path }}/."
+  with_items:
+    - ca.pem
+    - server-cert.pem
+    - server-key.pem
+
+- name: Set file permissions 
+  file:
+    path: "{{ server_certificate_path }}/{{ item }}"
+    mode: 0400
+  with_items:
+    - ca.pem
+    - server-cert.pem
+    - server-key.pem

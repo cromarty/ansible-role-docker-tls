@@ -1,0 +1,21 @@
+---
+
+tmp_path: /tmp
+
+client_certificate_path: "/home/{{ ansible_user }}/.docker"
+server_certificate_path: /etc/docker/ssl
+    
+subjectAltName: "IP:127.0.0.1"
+
+# -subj fields
+country: GB
+state_or_province: London
+locality: London
+organization: Global
+organizational_unit_name: IT
+
+skip_ca_cert_and_key_copy: yes
+skip_docker_service_override: no
+skip_docker_restart: no
+
+

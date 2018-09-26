@@ -1,0 +1,61 @@
+---
+
+
+
+- name: Create client key
+  command: >
+    openssl genrsa -out {{ tmp_path }}/key.pem 4096
+
+- name: Create client csr
+  command: >
+    openssl req -subj '/CN=client' -new -key {{ tmp_path }}/key.pem -out {{ tmp_path }}/client.csr
+
+- name: Remove extfile
+  file:
+    state: absent
+    path: "{{ tmp_path}}/extfile.cnf"
+
+- name: Create extfile
+  file:
+    state: touch
+    path: "{{ tmp_path }}/extfile.cnf"
+
+- name: Add extendedKeyUsage to extfile
+  lineinfile:
+    dest: "{{ tmp_path }}/extfile.cnf"
+    line: "extendedKeyUsage = clientAuth"
+
+
+- name: Create client certificate
+  command: >
+    openssl x509 -req -days 365 -sha256 \
+    -in {{ tmp_path }}/client.csr \
+    -CA {{ tmp_path }}/ca.pem \
+    -CAkey {{ tmp_path }}/ca-key.pem \
+    -CAcreateserial -out {{ tmp_path }}/cert.pem \
+    -extfile {{ tmp_path }}/extfile.cnf \
+    -passin pass:{{ privatekey_passphrase }}
+
+
+- name: Check that the client cert path exists
+  file:
+    state: directory
+    path: "{{ client_certificate_path }}"
+
+- name: Copy client certs
+  command: >
+    cp "{{ tmp_path }}/{{ item }}" "{{ client_certificate_path }}/."
+  with_items:
+    - ca.pem
+    - cert.pem
+    - key.pem
+
+- name: Set file permissions 
+  file:
+    path: "{{ client_certificate_path }}/{{ item }}"
+    mode: 0444
+  with_items:
+    - ca.pem
+    - cert.pem
+    - key.pem
+

@@ -1,0 +1,15 @@
+---
+
+- name: Import certificate_authority.yml
+  import_tasks: certificate_authority.yml
+
+- name: Import client_certificate.yml
+  import_tasks: client_certificate.yml
+
+- name: Import server_certificate.yml
+  import_tasks: server_certificate.yml
+
+- name: Import restart_docker.yml
+  import_tasks: restart_docker.yml
+
+
