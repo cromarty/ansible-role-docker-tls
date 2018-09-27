@@ -1,6 +1,6 @@
 ---
 
-tmp_path: /tmp
+tmp_path: /tmp/certs
 
 client_certificate_path: "/home/{{ ansible_user }}/.docker"
 server_certificate_path: /etc/docker/ssl

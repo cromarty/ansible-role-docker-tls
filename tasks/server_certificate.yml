@@ -1,6 +1,16 @@
 ---
 
 
+- name: Remove old server private key
+  file:
+    state: absent
+    path: "{{ tmp_path}}/server-key.pem"
+
+- name: Remove old server certificate
+  file:
+    state: absent
+    path: "{{ tmp_path}}/server-cert.pem"
+
 - name: Create server key
   command: >
     openssl genrsa -out {{ tmp_path }}/server-key.pem 4096

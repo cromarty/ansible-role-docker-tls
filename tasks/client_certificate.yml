@@ -1,6 +1,15 @@
 ---
 
 
+- name: Remove old client private key
+  file:
+    state: absent
+    path: "{{ tmp_path}}/key.pem"
+
+- name: Remove old client certificate
+  file:
+    state: absent
+    path: "{{ tmp_path}}/cert.pem"
 
 - name: Create client key
   command: >

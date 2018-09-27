@@ -1,6 +1,25 @@
 ---
 
-- name: Generate certificate authority key
+- name: Ensure temporary directory exists
+  file:
+    path: "{{ tmp_path }}"
+    state: directory
+    owner: root
+    group: root
+    recurse: yes
+
+
+- name: Remove old certificate authority private key
+  file:
+    state: absent
+    path: "{{ tmp_path}}/ca-key.pem"
+
+- name: Remove old certificate authority certificate
+  file:
+    state: absent
+    path: "{{ tmp_path}}/ca.pem"
+
+- name: Generate certificate authority private key
   command: >
     openssl genrsa -aes256 \
     -passout pass:{{ privatekey_passphrase }} \
