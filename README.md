@@ -13,7 +13,8 @@ It supports:
 * Preventing bi-directional access
 * Remotes can access their own TCP socket
 
-In the above, *controller* is the machine running your Ansible playbook executing this role.
+In the above, *controller* is the machine running your Ansible
+playbook executing this role.
 
 ## How Docker works with TLS
 
@@ -92,21 +93,23 @@ After the above steps you will have:
 
 Note that where the server components are installed to is controlable.
 
-Note also it is possible to install the client components to a place other than:
+Note also it is possible to install the client components to a place
+other than:
 
 ```
 /home/<user>/.docker
 ```
 
-By setting the environment variable `DOCKER_CERTS_PATH` on that host to point to where the three files:
+By setting the environment variable `DOCKER_CERTS_PATH` on that host
+to point to where these three files are stored:
 
 * ca.pem
 * cert.pem
 * key.pem
 
-Are stored.
-
-Note here also that the names of these files is critical. It does not appear to work if the CA certificate is not called `ca.pem`, the private key is not `key.pem`, or the certificate is not `cert.pem`.
+Note here also that the names of these files is critical. It does not
+appear to work if the CA certificate is not called `ca.pem`, the
+private key is not `key.pem`, or the certificate is not `cert.pem`.
 
 ## Variables
 
@@ -116,7 +119,8 @@ These are the role variables:
 privatekey_passphrase: <secret>
 ```
 
-See below for an explanation of keeping the passphrase in an Ansible vault, to keep it secret.
+See below for an explanation of keeping the passphrase in an Ansible
+vault, to keep it secret.
 
 ```
 tmp_path: /tmp
@@ -136,9 +140,12 @@ server_certificate_path: /etc/docker/ssl
 
 Where Docker daemon required components are installed.
 
-Note that, as will be seen below, all three files needed to start the Docker daemon in TLS mode do not need to all be in the same path, but this role only supports a single path for all three.
+Note that, as will be seen below, all three files needed to start the
+Docker daemon in TLS mode do not need to all be in the same path, but
+this role only supports a single path for all three.
 
-When the Docker daemon is started, there are switches that will point to the two server components and the CA certificate (see later).
+When the Docker daemon is started, there are switches that will point
+to the two server components and the CA certificate (see later).
 
 ```
 subjectAltName: "IP:127.0.0.1"
@@ -171,7 +178,9 @@ client and server certificates with a different private key, as
 discussed above. So it will not be possible to access that host from the
 controller.
 
-I don't see a point in this, as the whole point of TLS is to access the Docker daemon safely over the WAN. But this will behave like all other Ansible code I found by Googling.
+I don't see a point in this, as the whole point of TLS is to access
+the Docker daemon safely over the WAN. But this will behave like all
+other Ansible code I found by Googling.
 
 ```
 skip_docker_service_override: no
@@ -213,7 +222,9 @@ IP:127.0.0.1
 
 Only the localhost can access the socket.
 
-By setting this variable as above on the localhost, bi-directional access to it's socket from the other hosts is prevented. This is probably what you want.
+By setting this variable as above on the localhost, bi-directional
+access to it's socket from the other hosts is prevented. This is
+probably what you want.
 
 If one of your hosts is called `docker001`, then setting this variable
 to:
@@ -225,14 +236,19 @@ DNS:docker001,IP:127.0.0.1
 Makes it possible to connect from the named host and the localhost
 IP address.
 
-So as well as connecting to the TLS protected socket from the controller, connecting from the remote host to it's own localhost TCP port is possible.
+So as well as connecting to the TLS protected socket from the
+controller, connecting from the remote host to it's own localhost TCP
+port is possible.
 
 I don't think there is a limit to the number of entries.
 
 I don't know of any wildcard functionality here, but you would not
 want that for a Docker daemon anyway.
 
-I guess there *must* be wildcard functionality in TLS, otherwise it would not be possible for Web servers to accept connection from everybody who has the necessary certificate in their browser. Or am I misunderstanding something?
+I guess there *must* be wildcard functionality in TLS, otherwise it
+would not be possible for Web servers to accept connection from
+everybody who has the necessary certificate in their browser. Or am I
+misunderstanding something?
 
 ```
 docker_port: 2376
@@ -250,7 +266,8 @@ host_vars/host.yml
 
 Here is how to start the Docker daemon to support TLS.
 
-You need to provide some switches when starting the Docker daemon, in addition to the TCP address and port:
+You need to provide some switches when starting the Docker daemon, in
+addition to the TCP address and port:
 
 ```
 --tlsverify
@@ -272,7 +289,8 @@ This is the line in the `override.conf.j2` template:
 ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:{{ docker_port }} --tlsverify --tlscacert={{ server_certificate_path }}/ca.pem --tlscert={{ server_certificate_path }}/server-cert.pem --tlskey={{ server_certificate_path }}/server-key.pem
 ```
 
-You can see from the above how the variables in `defaults/main.yml` need to be set to where these three components are installed.
+You can see from the above how the variables in `defaults/main.yml`
+need to be set to where these three components are installed.
 
 Of course they can be overridden at group or host level in your playbooks.
 
@@ -294,7 +312,9 @@ Switch sets where the host Docker daemon is listening.
 
 ## Keeping `privatekey_passphrase` a Secret
 
-It is *strongly* recommended that the private key passphrase, used in creating the CA private key and certificate are not stored in plain text.
+It is *strongly* recommended that the private key passphrase, used in
+creating the CA private key and certificate are not stored in plain
+text.
 
 To do this we use an Ansible vault.
 
@@ -349,17 +369,23 @@ To run a playbook which uses the role and the Ansible vault:
 ansible-playbook --ask-vault-pass <playbook.yml>
 ```
 
-You will need for all hosts in your inventory to have the same `ansible_user` and `ansible_become_pass` value.
+You will need for all hosts in your inventory to have the same
+`ansible_user` and `ansible_become_pass` value.
 
-I don't think it is possible to get many entries from many vaults in a single run of a playbook, but I may be wrong.
+I don't think it is possible to get many entries from many vaults in a
+single run of a playbook, but I may be wrong.
 
 ## Notes
 
 ### Man-in-the-middle (MITM) Attacks
 
-I read somewhere that this approach does not provide server identity verification. So you will not be able to gurantee that the Docker daemon you are connecting to on a remote host is the machine you think it is.
+I read somewhere that this approach does not provide server identity
+verification. So you will not be able to guarantee that the Docker
+daemon you are connecting to on a remote host is the machine you think
+it is.
 
-But if there is a MITM (man-in-middle), he will just see typical Docker requests to:
+But if there is a MITM (man-in-middle), he will just see typical
+Docker requests to:
 
 * Pull images
 *  Start and stop containers
@@ -372,4 +398,4 @@ And more.
 You're not going to send credit card data over the Docker daemon HTTP port.
 
 But I am no security expert.
-
+11;rgb:0000/0000/0000
