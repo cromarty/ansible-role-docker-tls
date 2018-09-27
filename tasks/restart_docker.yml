@@ -30,14 +30,5 @@
   when:
     - not skip_docker_restart
 
-- name: Install docker environments file
-  template:
-    src: docker-env.sh.j2
-    dest: "/home/{{ ansible_user }}/docker-env.sh"
-    backup: no
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: 0644
-
 
 
