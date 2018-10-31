@@ -16,7 +16,7 @@ locality: London
 organization: Global
 organizational_unit_name: IT
 
-skip_ca_cert_and_key_copy: yes
+skip_ca_cert_and_key_copy: no
 skip_docker_service_override: no
 skip_docker_restart: no
 

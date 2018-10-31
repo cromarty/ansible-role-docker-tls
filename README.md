@@ -169,7 +169,7 @@ The subj fieleds are entries in the client and server certificates.
 The values shown are the defaults provided in `defaults/main.yml`.
 
 ```
-skip_ca_cert_and_key_copy: yes
+skip_ca_cert_and_key_copy: no
 ```
 
 If the above is set to 'yes', then the copy from the localhost to a
@@ -398,4 +398,70 @@ And more.
 You're not going to send credit card data over the Docker daemon HTTP port.
 
 But I am no security expert.
-11;rgb:0000/0000/0000
+
+## How to Configure Docker Contained Serveices Remotely
+
+I recently had a very difficult time finding out how to configure a
+service running in Docker containers running on remote hosts with
+Ansible.
+
+### Problem
+
+I needed to configure a MongoDB replica set with four nodes running
+inside four separate Docker containers, each running on a different
+host.
+
+These four nodes are:
+
+* Master node
+* Replica 1
+* Replica 2
+* Arbiter
+
+We don't need to write here anything about MongoDB terminology or
+configuration, other than that I needed to start each container with
+the `/sbin/init` process running as `pid 1` and then run some Ansible
+code to configure MongoDB functionality.
+
+How to address stuff inside a container running on a remote host?
+
+Just writing:
+
+```
+mongo1 ansible_connection=docker
+```
+
+Did not seem to be enough.
+
+The secret lies in the Ansible parameter `delegate_to:`.
+
+Using Ansible code like this:
+
+
+```
+---
+
+- hosts: mongo
+  gather_facts: yes
+  become: yes
+  roles:
+    - mymongodb
+      delegate_to: "{{ inventory_hostname }}"
+```
+
+But this is not enough. In the `host_vars/``` file for the host which
+represents the container, you need to put an entry like this:
+
+```
+ansible_docker_extra_args: "-H=tcp://{{ mongodb_host }}:2376 --tlsverify"
+```
+
+For example in `host_vars/mongo1.yml`. Here `mongo1` is one of the
+containers containing one of my MongoDB nodes, actually the Master
+node.
+
+In the above the `mongodb_host` variable contaimns the IP address of
+the Ansible host hosting the `mongo1` container.
+
+The `--tlsverify` flag is needed when the Docker daemon on the Ansible
+host hosting the container is running with TLS verification on.
