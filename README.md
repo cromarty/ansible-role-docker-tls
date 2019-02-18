@@ -169,7 +169,7 @@ The subj fieleds are entries in the client and server certificates.
 The values shown are the defaults provided in `defaults/main.yml`.
 
 ```
-skip_ca_cert_and_key_copy: no
+skip_docker_ca_cert_and_key_copy: no
 ```
 
 If the above is set to 'yes', then the copy from the localhost to a
@@ -256,7 +256,9 @@ docker_port: 2376
 
 The default value for a Docker daemon TLS protected port is 2376.
 
-If you have multiple remote hosts at the same IP address, and accessible thanks to port-forwarding at that address, then this port can be set differently for each remote host in it's corresponding:
+If you have multiple remote hosts at the same IP address, and
+accessible thanks to port-forwarding at that address, then this port
+can be set differently for each remote host in it's corresponding:
 
 ```
 host_vars/host.yml
@@ -465,3 +467,27 @@ the Ansible host hosting the `mongo1` container.
 
 The `--tlsverify` flag is needed when the Docker daemon on the Ansible
 host hosting the container is running with TLS verification on.
+
+Since the change which introduced the `docker_tls_verify` boolean
+variable, a more complete `ansible_docker_extra_args` line might look
+like this:
+
+```
+ansible_docker_extra_args: "-H=tcp://{{ mongodb_host }}:{{ docker_port }} {{ (docker_tls_verify|default(true))|ternary('--tlsverify','') }}"
+```
+
+See the contents of `templates/override.conf.j2` for `systemd` service
+file override details relating to `docker_tls_verify.
+
+Please note that if `docker_tls_verify` is set to false, then
+previously created and copied certificates and keys are not removed
+either from the Ansible provisioning host or from any Docker host, but
+the `override.conf` file is replaced without the switches that make
+TLS verification necessary, and the service is started with access
+through Unix domain socket only.
+
+I thought it was a better and more secure option to remove TCP socket
+access completely when switching from `docker_tls_verify` being true
+to false.
+
+
