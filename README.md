@@ -401,7 +401,7 @@ You're not going to send credit card data over the Docker daemon HTTP port.
 
 But I am no security expert.
 
-## How to Configure Docker Contained Serveices Remotely
+## How to Configure Docker Contained Services Remotely
 
 I recently had a very difficult time finding out how to configure a
 service running in Docker containers running on remote hosts with
